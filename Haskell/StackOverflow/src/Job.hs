@@ -24,6 +24,7 @@ mapper :: String -> [(MapKey, [MapValue])]
 mapper input = withUser (runLA (xread >>> getUser) input)
 
 withUser :: [User] -> [(MapKey, [MapValue])]
+withUser [] = []
 withUser users =   let user = head users
                        today = (parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "2017-04-01")
                        diff = diffDays today (parseTimeOrError True defaultTimeLocale "%Y-%m-%dT%H:%M:%S%Q" (creationDate user))
