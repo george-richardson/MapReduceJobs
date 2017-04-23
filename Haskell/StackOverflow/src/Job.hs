@@ -21,13 +21,16 @@ data User = User
   deriving (Show, Eq)
 
 mapper :: String -> [(MapKey, [MapValue])]
-mapper input = let user = head (runLA (xread >>> getUser) input)
-                   today = (parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "2017-04-01")
-                   diff = diffDays today (parseTimeOrError True defaultTimeLocale "%Y-%m-%dT%H:%M:%S%Q" (creationDate user))
-                   repPerDay = fromIntegral (reputation user) / fromIntegral diff
-               in if repPerDay > (1::Double) 
-                    then [("active", [1])]
-                    else [("inactive", [1])]
+mapper input = withUser (runLA (xread >>> getUser) input)
+
+withUser :: [User] -> [(MapKey, [MapValue])]
+withUser users =   let user = head users
+                       today = (parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "2017-04-01")
+                       diff = diffDays today (parseTimeOrError True defaultTimeLocale "%Y-%m-%dT%H:%M:%S%Q" (creationDate user))
+                       repPerDay = fromIntegral (reputation user) / fromIntegral diff
+                   in if repPerDay > (1::Double) 
+                         then [("active", [1])]
+                         else [("inactive", [1])]
 
 reducer :: (MapKey, [MapValue]) -> (ReduceKey, ReduceValue)
 reducer input = (fst input, sum (snd input))
