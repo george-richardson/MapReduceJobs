@@ -1,6 +1,5 @@
 module Main where
 
-import JobRunner
 import Job
 import System.Environment
 import Data.Aeson
@@ -17,7 +16,7 @@ main = do
             else B.putStr (reducerIO input)
 
 mapperIO :: B.ByteString -> B.ByteString 
-mapperIO input = encode (fromListWith (++) (flatten (Prelude.map runMapper (lines (C.unpack input)))))
+mapperIO input = encode (fromListWith (++) (flatten (Prelude.map mapper (lines (C.unpack input)))))
 
 reducerIO :: B.ByteString -> B.ByteString
 reducerIO input = 
@@ -27,7 +26,7 @@ reducerIO input =
 reducerIOMaybe :: Either String (Map MapKey [MapValue]) -> B.ByteString
 reducerIOMaybe a = case a of 
     Left b -> C.pack b
-    Right b -> encode (fromList (Prelude.map runReducer (toList b)))
+    Right b -> encode (fromList (Prelude.map reducer (toList b)))
 
 
 flatten :: [[a]] -> [a]
