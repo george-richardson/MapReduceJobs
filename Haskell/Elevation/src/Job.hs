@@ -34,11 +34,14 @@ reducer input = (fst input, maximum (snd input))
 unwrapMaybe :: Maybe Int -> Maybe Double -> Maybe Double -> [(MapKey, [MapValue])]
 unwrapMaybe (Just elevation) (Just lat) (Just long) = let latr = toRadians lat
                                                           longr = toRadians long
-                                                          clong = (-0.00070130820003)
-                                                          clat = 0.899246234849
                                                           latd = clat - latr;
                                                           longd = clong - longr;
                                                           a = ((sin (latd / 2)) ** 2) + (cos latr) * (cos clat) * ((sin (longd/2)) ** 2)
-                                                          bucket = ((2 * atan2 (sqrt a) (sqrt (1 - a))) * 6371000) / 100000
+                                                          bucket = ((2 * atan2 (sqrt a) (sqrt (1 - a))) * radius) / bucketsize
                                                       in [(show (round bucket), [elevation])]
 unwrapMaybe _ _ _ = []
+
+clong = (-0.00070130820003)
+clat = 0.899246234849
+radius = 6371000
+bucketsize = 100000
