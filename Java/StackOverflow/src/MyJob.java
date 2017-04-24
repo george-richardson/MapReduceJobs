@@ -9,32 +9,41 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.StringReader;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class MyJob {
 
     public static class MyMapper
-            extends Mapper<Object, Text, Text, IntWritable>{
+            extends Mapper<Object, Text, Text, IntWritable> {
+
+        private static Unmarshaller unmarshaller;
+        private static Date now = new Date();
+        static {
+            try {
+                unmarshaller = JAXBContext.newInstance(Row.class).createUnmarshaller();
+            } catch (JAXBException e) {
+
+            }
+        }
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
             String xml = value.toString();
             Row row;
             try {
-                Unmarshaller unmarshaller = JAXBContext.newInstance(Row.class).createUnmarshaller();
                 StringReader reader = new StringReader(xml);
                 row = (Row) unmarshaller.unmarshal(reader);
             } catch (Exception exception) {
                 return;
             }
 
-            LocalDate date = row.getCreationDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            long days = ChronoUnit.DAYS.between(date, LocalDate.now());
+            long diff = now.getTime() - row.getCreationDate().getTime();
+            long days = TimeUnit.MILLISECONDS.toDays(diff);
 
             String group = (double)row.getReputation()/(double)days > 1 ? "active" : "inactive";
 
